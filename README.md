@@ -8,3 +8,9 @@
 4. bin/rails server
 
 And open http://localhost:3000 in your browser.
+
+## TODO
+
+- Real-time updates
+- Comment editing
+- Formatting
