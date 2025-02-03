@@ -1,0 +1,57 @@
+<%# app/views/projects/show.html.erb %>
+<div class="container mx-auto p-6">
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h1 class="text-3xl font-bold text-gray-800"><%= @project.name %></h1>
+    <h2 class="text-xl font-semibold text-gray-600"><%= @project.status.humanize %></h2>
+
+    <p class="text-m font-semibold text-gray mt-4 mb-2">Participants: <%= @project.users.map(&:name).join(', ') %></p>
+
+    <div class="mt-4">
+      <%= form_with model: @project, url: project_path(@project), method: :patch, local: true do |f| %>
+        <div class="mt-4">
+          <%= f.select :status, Project.statuses.keys.map { |status| [status.humanize, status] }, { selected: @project.status }, class: "border-gray-300 p-2 rounded" %>
+        </div>
+        <%= f.submit "Update Status", class: "mt-4 bg-blue-500 text-white py-2 px-4 rounded" %>
+      <% end %>
+    </div>
+
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold text-gray-600">History</h2>
+      <div class="space-y-4 mt-4">
+        <% @project.project_changes.each do |change| %>
+          <% if change.comment_posted? %>
+            <!--div class="bg-gray-100 p-4 rounded"-->
+            <div id="comment-<%= change.comment.id %>" class="bg-gray-100 p-4 rounded flex justify-between items-center">
+              <div class="w-full">
+                <p class="font-semibold text-gray-700"><%= change.user.name %>:</p>
+                <p class="text-gray-600"><%= change.comment.deleted_at? ? '' : change.comment.content %></p>
+                <p class="text-sm text-gray-500">
+                  Posted on: <%= change.triggered_at.strftime("%b %d, %Y %H:%M") %><% if change.comment.deleted_at? %>, 
+                  Deleted on: <%= change.comment.deleted_at.strftime("%b %d, %Y %H:%M") %><% end %>
+                </p>
+              </div>
+
+              <% if change.user == current_user && !change.comment.deleted_at? %>
+                <%= button_to "Delete", project_comment_path(@project, change.comment), method: :delete, data: { confirm: "Are you sure you want to delete this comment?" }, class: "text-red-500 hover:text-red-700" %>
+              <% end %>
+            </div>
+
+          <% else %>
+            <div class="bg-gray-100 p-4 rounded">
+              <p class="font-semibold text-gray-700"><%= change.description %></p>
+              <p class="text-sm text-gray-500">Triggered on: <%= change.triggered_at.strftime("%b %d, %Y %H:%M") %></p>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <h3 class="mt-6 text-lg font-semibold text-gray-600">Add a New Comment</h3>
+      <%= form_with model: Comment.new, url: project_comments_path(@project), local: true do |f| %>
+        <div class="mt-4">
+          <%= f.text_area :content, placeholder: "Write your comment here...", class: "border-gray-300 p-2 rounded w-full" %>
+        </div>
+        <%= f.submit "Add Comment", class: "mt-4 bg-green-500 text-white py-2 px-4 rounded" %>
+      <% end %>
+    </div>
+  </div>
+</div>
