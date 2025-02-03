@@ -15,19 +15,40 @@
     <link rel="apple-touch-icon" href="/icon.png">
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+
+    <!-- Function to set user_id cookie for quick testing -->
+    <script>
+      function setUserIdCookieForDev(event, userId) {
+        event.preventDefault();
+        document.cookie = `user_id=${userId}; path=/`;
+        location.reload();
+      }
+    </script>
   </head>
 
   <body class="bg-gray-100 min-h-screen">
     <!-- Top Bar -->
 
-    <div class="bg-white shadow-md fixed top-0 left-0 right-0 px-5 flex">
+    <div class="bg-white shadow-md fixed top-0 left-0 right-0 px-5 flex justify-between">
       <div>
       Logged in as: <span class="font-bold"><%= current_user.name %></span>
+      </div>
+      <div>
+        <% User.all.limit(5).each do |user| %>
+          <a 
+            href="#"
+            class="font-bold text-blue-600 hover:underline mx-2"
+            data-user-id="<%= user.id %>"
+            onclick="setUserIdCookieForDev(event, <%= user.id %>)"
+          >
+            <%= user.name %>
+          </a>
+        <% end %>
       </div>
     </div>
 
     <!-- Flash Messages -->
-    <div class="container mx-auto mt-20 px-5">
+    <div id="flash-messages" class="fixed top-10 right-5 space-y-4 z-30">
       <% flash.each do |key, message| %>
         <% alert_classes = {
           notice: "bg-green-100 border-green-400 text-green-700",
@@ -35,7 +56,7 @@
           error: "bg-red-100 border-red-400 text-red-700"
         } %>
 
-        <div class="border-l-4 p-4 mb-4 rounded shadow-sm <%= alert_classes[key.to_sym] || 'bg-blue-100 border-blue-400 text-blue-700' %>">
+        <div class="flash-message border-l-4 p-4 rounded shadow-lg <%= alert_classes[key.to_sym] || 'bg-blue-100 border-blue-400 text-blue-700' %>">
           <p><%= message %></p>
         </div>
       <% end %>
@@ -45,5 +66,19 @@
     <main class="container mx-auto mt-28 px-5 flex">
       <%= yield %>
     </main>
+
+    <!-- JavaScript for Auto-Dismiss -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const flashMessages = document.querySelectorAll('.flash-message');
+
+        flashMessages.forEach((msg) => {
+          setTimeout(() => {
+            msg.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+            setTimeout(() => msg.remove(), 500); // Remove from DOM after fade out
+          }, 1000); // 3 seconds before fade out starts
+        });
+      });
+    </script>
   </body>
 </html>
