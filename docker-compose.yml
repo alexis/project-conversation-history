@@ -3,11 +3,12 @@ services:
   web:
     build: .
     ports:
-      - "3000:80"
+      - "8001:3000"
     environment:
+      - RAILS_ENV=production
+      - RAILS_MASTER_KEY
       - POSTGRES_USER
       - POSTGRES_PASSWORD
-      - POSTGRES_DB
       - POSTGRES_PORT=5432
       - POSTGRES_HOST=db
     depends_on:
